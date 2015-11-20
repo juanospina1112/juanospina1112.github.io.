@@ -139,15 +139,125 @@
 
 
 <h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<a id="PROGRAMACION" class="anchor" href="#PROGRAMACION" aria-hidden="true"><span class="octicon octicon-link"></span></a>PROGRAMACION</h3>
+
+<p>La programación fue hecha por medio de la plataforma ARDUINO, esta nos ayudó a facilitar el proceso de escritura del programa, ya que  contiene funciones predeterminadas como lo son.</p>
+<UL>
+	<LI>digitalWrite(pin,estado)
+	<LI>analogWrite(pin,valor)
+</UL>
+
+<p> Siendo estas funciones las que remplazan el proceso de escritura  por un pin, lo cual requiere primero de la declaración de los pines como salida y segundo escribir en ellos, aunque se escuche fácil se debe tener muy claro el funcionamiento del microcontrolador para realizar esta accion. </p>	
+
+<p> Este proyecto fue liderado por un microcontrolador ATmega328p, pues este está contenido en la placa arduino UNO; este microcontrolador posee 6 salidad pwm y una interfaz de comunicación llamada I2C, aspectos de interés para nuestro programa.  </p>
+<p> El concepto básico del programa es el siguiente. </p>
+<img src="imagenes_ospina/ospina_1.jpg" width=500 height=500>
+<p> Donde el sensor nos da la posición del segway la cual se quiere mantener en cero grados, posterior a ello la ley de control genera datos, los cuales tienen que ser interpretados para generar la señal PWM.  </p>
+<p>  El proceso de sensar la posición se lleva a cabo por el integrado MPU 6050 el cual se comunica con la interfaz I2C; como este integrado es muy utilizado para medir posición y aceleración arduino incluyo una Liberia llamada wire.h la cual maneja las transmisiones por medio de dicha interfaz. A continuación se muestra el programa que captura los datos del integrado MPU 6050. </p>
+<BR>#include Wire.h</BR> 
+<BR>//Direccion I2C de la IMU</BR>
+<BR>#define MPU 0x68</BR>
+ 
+<BR>//Ratios de conversion</BR>
+<BR>#define A_R 16384.0</BR>
+<BR>#define G_R 131.0</BR>
+ 
+<BR>//Conversion de radianes a grados 180/PI</BR>
+<BR>#define RAD_A_DEG = 57.295779</BR>
+<BR>//MPU-6050 da los valores en enteros de 16 bits</BR>
+<BR>//valores capturados del MPU-6050</BR>
+<BR>int16_t AcX, AcY, AcZ, GyX, GyY, Gy; </BR>
+<BR>//datos transformados a angulos</BR>
+<BR>float Acc[2]; </BR>
+<BR>float Angle[2]; </BR>
+<BR>float Gy[2]; </BR>
+<BR>void setup()</BR>
+<BR>{</BR>
+<BR>Wire.begin();</BR>
+<BR>Wire.beginTransmission(MPU); </BR>
+<BR>Wire.write(0x6B); </BR>
+<BR>Wire.write(0); </BR>
+<BR>Wire.endTransmission(true); </BR>
+<BR>}</BR>
+<BR>void loop()</BR>
+<BR>{</BR>
+ 
+<BR>   //Leer los valores del Acelerometro de la IMU</BR>
+  <BR> Wire.beginTransmission(MPU); </BR>
+  <BR> Wire.write(0x3B); //Pedir el registro 0x3B - corresponde al AcX</BR>
+   <BR>Wire.endTransmission(false); </BR>
+   <BR>Wire.requestFrom(MPU,6,true); //A partir del 0x3B, se piden 6 registros</BR>
+   <BR>AcX=Wire.read()<<8|Wire.read(); //Cada valor ocupa 2 registros</BR>
+   <BR>AcY=Wire.read()<<8|Wire.read();</BR>
+  
+   <BR>//Se calculan los angulos Y, X respectivamente. </BR>
+   <BR>Acc[1] = atan(-1*(AcX/A_R)/sqrt(pow((AcY/A_R),2) + pow((AcZ/A_R),2)))*RAD_TO_DEG; </BR>
+  <BR> Acc[0] = atan((AcY/A_R)/sqrt(pow((AcX/A_R),2) + pow((AcZ/A_R),2)))*RAD_TO_DEG; </BR>
+ 
+<BR>   //Leer los valores del Giroscopio</BR>
+   <BR>Wire.beginTransmission(MPU); </BR>
+   <BR>Wire.write(0x43); </BR>
+  <BR> Wire.endTransmission(false); </BR>
+  <BR> Wire.requestFrom(MPU,4,true); //A diferencia del Acelerometro, solo se piden 4 registros</BR>
+   <BR>GyX=Wire.read()<<8|Wire.read();</BR>
+<BR>   GyY=Wire.read()<<8|Wire.read();</BR>
+ 
+   <BR>//Calculo del angulo del Giroscopio</BR>
+   <BR>Gy[0] = GyX/G_R; </BR>
+   <BR>Gy[1] = GyY/G_R; </BR>
+ 
+   <BR>//Aplicar el Filtro Complementario</BR>
+   <BR>Angle[1] = 0.98 *(Angle[1]+Gy[1]*0.010) + 0.02*Acc[1]; </BR>
+<p>   Ahora como se ve al  final del programa existe un filtro, este tiene la función de generarnos valores más o menos precisos, pues el MPU es muy inestable y a cualquier perturbación cambia su ángulo, por lo generar arrogando valores erróneos, los cuales son mejorados con este filtro el cual es conocido como filtro complementario.</p>
+<p>Ahora teniendo los valores del sensor en las unidades requeridas por el control, se procede a llevar a un código el controlador. </p>
+<p>Como primer factor a tener en cuenta es el tiempo de muestreo, este no se podía ejecutar por medio de la función delay, pues esta interrumpe inmediatamente la adquisición de datos y ejecución de demás programas necesario para ejecutar el control. </p>
+<p>Por esto se utilizó una librería creada por un colaborador de arduino llamada TIMER-MASTER. Y esta tiene el siguiente formato. </p>
+<BR>#include Timer.h</BR>
+<BR>Float Ts=  #ms   //tiempo de muestro</BR>
+<BR>Timer t;     // objeto de tipo Timer</BR>
+<BR>void setup()</BR>
+<BR>{</BR>
+<BR>t.every(Ts,control); // se define la función que va a tener el objeto, el cual es ir a una función cuando se cumpla un instante de tiempo</BR>
+<BR>}</BR>
+<BR>Void loop()</BR>
+<BR>{</BR>
+<BR>t.update(); // función que actualiza el objeto t , y cuando se cumpla el tiempo de muestreo ejecuta la función control</BR>
+<BR>}</BR>
+<BR>Control</BR>
+<BR>{</BR>
+<BR>// controlador</BR>
+<BR>}</BR>
+
+
+<p> La función control en sencilla pues esta solo  por medio de una formula genera la ley de control, y al mismo instante proporciona la señal PWM que controla el motor, se debe tener en cuenta que los valores  que relacionan la ley de control con el motor son obtenido por una caracterización entre dicho motor y los valores mínimos y máximos de la ley de control.</p>
+<BR>void control()</BR>
+<BR>{</BR>
+  <BR>vel=(Angle[1]-GyYA)/(Ts); //se halla la velocidad </BR>
+  <BR>u=-K1*Angle[1]-K2*vel+Kr*(0);  //ley de control</BR>
+<BR>//condición de dirección de giro del motor  </BR>
+<BR>if(u>0) </BR>
+  <BR>{</BR>
+  <BR> AM= map(u, 78773,1101630, 190,255);// mapeo que relaciona la ley de control con la PWM</BR>
+    <BR>digitalWrite(8,HIGH); // direccion</BR>
+  <BR>digitalWrite(9,LOW); </BR>
+  <BR>analogWrite(10,AM); // se genera la PWM</BR>
+   <BR>}</BR></BR>
+   <BR>else</BR>
+   <BR>{</BR>
+  <BR>AM= map(u, -1101630,78773, 255, 190); </BR>
+    <BR>digitalWrite(8,LOW); </BR>
+  <BR>digitalWrite(9,HIGH); </BR>
+  <BR>analogWrite(10,AM);   </BR>
+  <BR>}</BR>
+  <BR>GyYA=Angle[1]; // se guarda el angulo actual para hallar la velocidad</BR>
+  
+<BR>}</BR>
+
+<p>como se observa en el codigo tambien existe una comparacion , la cual esta desiganda para realizar el cambio de giro del motor cuando lo es requerido, tambien vemos que utilizando el comando analogWrite() obtenemos una señal PWM siendo esta en la magnitud requerida por la ley de control para efectuar el toque necesario y asi controlar el segway </p>
+<p> </p>
 
 <h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
-        </article>
       </div>
     </div>
     <footer>
