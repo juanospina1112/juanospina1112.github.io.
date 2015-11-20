@@ -42,9 +42,67 @@
 <p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here <a href="https://guides.github.com/features/mastering-markdown/">using GitHub Flavored Markdown</a>, select a template crafted by a designer, and publish. After your page is generated, you can check out the new <code>gh-pages</code> branch locally. If you’re using GitHub Desktop, simply sync your repository and you’ll see the new branch.</p>
 
 <h3>
-<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a id="DISEÑO DEL CONTROLADOR" class="anchor" href="#DISEÑO DEL CONTROLADOR" aria-hidden="true"><span class="octicon octicon-link"></span></a>DISEÑO DEL CONTROLADOR</h3>
 
-<p>We’ve crafted some handsome templates for you to use. Go ahead and click 'Continue to layouts' to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved.</p>
+<p>Luego de tener el Mini-segway modelado matemáticamente y expresado en variables de estado, se procedió a diseñar la estrategia de control; como opciones se tuvieron dos técnicas, realimentación de estados simple y realimentación de estados con la adición de una acción integral.</p>
+
+<p>Al diseñar los dos tipos de controladores y probarlos en el sistema, se observó que adicionar una acción integral producía los siguientes efectos:</p>
+
+<img src="imagenes_andres/tabla.jpg" width=500 height=200>
+
+<p>Aunque el controlador integral posee varias ventajas respecto a la realimentación de estados simple; la única desventaja que posee es de fuerza mayor, dado que el controlador a implementar, debe actuar de manera rápida pues el punto de operación del sistema alrededor del cual se linealizó hace se entre en inestabilidad muy fácilmente.</p>
+
+<p>Por la desventaja abordada anteriormente, se decidió implementar una ley de control por realimentación de estados simple; este controlador fue diseñado con ayuda de la herramienta MATLAB y simulado mediante SIMULINK. En el repositorio se pueden encontrar los archivos .m y .slx respectivamente.</p>
+
+<p>El diseño del controlador requiere los siguientes pasos:</p>
+
+<UL> 
+    <LI>Obtener la versión discreta del sistema
+</UL>
+
+<p>Esto se hace dado que la estrategia de control se implementara en un sistema basado en microcontrolador, el cual realiza el procesamiento de señales de manera discreta. En MATLAB se puede realizar la discretización por medio del comando c2d(), este comando realiza una discretización exacta del sistema teniendo en cuenta el tiempo de muestreo, el cual fue establecido mediante la siguiente formula:</p>
+
+<img src="imagenes_andres/formula.jpg" width=75 height=50>
+
+<p>Donde P es la magnitud del mayor polo que afecte el sistema.</p>
+
+<p>Al nombrar la versión discreta del sistema se hace referencia tanto a las matices como a los polos deseados.</p>
+
+<UL> 
+    <LI>Obtener las constantes de realimentación
+</UL>
+
+<p>Las constantes de realimentación son aquellas que nos ayudan a implementar la ley de control, pueden ser halladas mediante la igualación del polinomio deseado y el polinomio característico de laso cerrado o por algoritmos preestablecidos. En MATLAB se pueden encontrar dichas constantes con comandos como acker() o place().</p>
+
+<p>En cuanto la simulación del sistema se implementó el siguiente esquema en SIMULINK:</p>
+
+<img src="imagenes_andres/sistema.jpg" width=500 height=200>
+
+<p>En el cual, el scope1 nos permite observar la ley de control y así determinar que tanto esfuerzo de control se está ejerciendo, en el scope se visualiza el ángulo de salida tomado por el sistema.</p>
+
+<p>Por el step1 emulamos las perturbaciones que pudiese llegar a tener el sistema, y se incluyó un step para variar la referencia, sin embargo, se debe tener claro que para nuestro sistema la referencia siempre serán 0°.</p>
+
+<p>En las próximas imágenes se puede observar la salida del sistema ante diferentes perturbaciones y la referencia, se reitera, en 0°.</p>
+
+<UL> 
+    <LI>Perturbación 0°
+</UL>
+
+<img src="imagenes_andres/0.jpg" width=500 height=500>
+
+<UL> 
+    <LI>Perturbación 5°
+</UL>
+
+<img src="imagenes_andres/5.jpg" width=500 height=500>
+
+<UL> 
+    <LI>Perturbación 10°
+</UL>
+
+<img src="imagenes_andres/10.jpg" width=500 height=500>
+
+<p>De las imágenes anteriores se concluye que el controlador diseñado es eficiente para esta aplicación, lo cual se corrobora al momento de su implementación. Al aumentar el ángulo de perturbación, el ángulo de salida del sistema tiende a alejarse de 0°, lo cual no ocurre con el controlador robusto; sin embargo, este error es muy mínimo y dado la acción de control cada tiempo de muestreo se hace “invisible”. Se tuvo en cuenta la simulación hasta 10°, dado que teóricamente esta es la región lineal del sistema.</p>
 
 <h3>
 <a id="creating-pages-manually" class="anchor" href="#creating-pages-manually" aria-hidden="true"><span class="octicon octicon-link"></span></a>Creating pages manually</h3>
