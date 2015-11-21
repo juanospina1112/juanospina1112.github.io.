@@ -37,9 +37,19 @@
         </div>
         <article class="markdown-body">
           <h3>
-<a id="MATERIALES" class="anchor" href="#MATERIALES" aria-hidden="true"><span class="octicon octicon-link"></span></a>MATERIALES.</h3>
+<a id="MODELO MATEMATICO" class="anchor" href="#MODELO MATEMATICO" aria-hidden="true"><span class="octicon octicon-link"></span></a>MODELO MATEMATICO.</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here <a href="https://guides.github.com/features/mastering-markdown/">using GitHub Flavored Markdown</a>, select a template crafted by a designer, and publish. After your page is generated, you can check out the new <code>gh-pages</code> branch locally. If you’re using GitHub Desktop, simply sync your repository and you’ll see the new branch.</p>
+<p> Para nuestro caso modelamos el segway como un pendulo invertido</p>
+<img src="imagenes_ospina/esquema.jpg" width=150height=100>
+<p>  En el digrama se observan las fuerzas que actuan sobre el sistema y realizando la segunda ley de newton para torques obtenemos la ecuacion de movimiento del sistema </p>
+<img src="imagenes_ospina/ecuacion.jpg" width=400 height=100>
+<p>  Ahora como se utilizara un control por relimentacion de estados y asi matener el segway en la posicion deseada, es necesario convertir esta ecuacion a variables de estado, donde obtenemos los siguientes estados.</p>
+
+<img src="imagenes_ospina/ecuaciones_lineales.jpg" width=200height=300>
+<p> y llevando el sistema su forma matricial queda asi:</p>
+<img src="imagenes_ospina/ve.jpg" width=200height=300>
+<img src="imagenes_ospina/salida.jpg" width=150height=50>
+<p> este sistema sera el utilizado para relizar el control.
 
 <h3>
 <a id="DISEÑO DEL CONTROLADOR" class="anchor" href="#DISEÑO DEL CONTROLADOR" aria-hidden="true"><span class="octicon octicon-link"></span></a>DISEÑO DEL CONTROLADOR</h3>
@@ -258,7 +268,8 @@
 <p> </p>
 
 <h3>
-      </div>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/P4mbTeeYYII" frameborder="0" allowfullscreen></iframe>
+    </div>
     </div>
     <footer>
       <div class="owner">
